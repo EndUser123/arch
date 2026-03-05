@@ -1,0 +1,6 @@
+{
+  "$schema": "./.archconfig.schema.json",
+  "default_domain": "python",
+  "output_size": "normal",
+  "evidence_level": "standard"
+}

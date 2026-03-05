@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code.claude.ai/schemas/archconfig.json",
+  "title": "Arch Skill Configuration",
+  "description": "Configuration schema for /arch skill default domain and output preferences. Location: .archconfig.json (project) or ~/.archconfig.json (user)",
+  "type": "object",
+  "properties": {
+    "default_domain": {
+      "description": "Default domain for architecture queries when no keywords are detected",
+      "type": "string",
+      "enum": ["cli", "python", "data-pipeline", "precedent", "auto"],
+      "default": "auto"
+    },
+    "output_size": {
+      "description": "Preferred output verbosity level",
+      "type": "string",
+      "enum": ["concise", "normal", "verbose"],
+      "default": "normal"
+    },
+    "evidence_level": {
+      "description": "Required evidence tier for recommendations",
+      "type": "string",
+      "enum": ["tier1", "standard", "flexible"],
+      "default": "standard"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,158 @@
+{
+  "name": "arch-skill",
+  "children": [
+    {
+      "name": "Core Purpose",
+      "children": [
+        {
+          "name": "Adaptive Architecture Advisor"
+        },
+        {
+          "name": "Template-based decision making"
+        },
+        {
+          "name": "Claude Code integration"
+        }
+      ]
+    },
+    {
+      "name": "Templates",
+      "children": [
+        {
+          "name": "Complexity-based",
+          "children": [
+            {
+              "name": "fast (Low complexity)"
+            },
+            {
+              "name": "deep (High complexity)"
+            }
+          ]
+        },
+        {
+          "name": "Domain-specific",
+          "children": [
+            {
+              "name": "cli (CLI/POSIX)"
+            },
+            {
+              "name": "python (Python 3.12+)"
+            },
+            {
+              "name": "data-pipeline (ETL/Streaming)"
+            },
+            {
+              "name": "precedent (ADR documentation)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Execution Flow",
+      "children": [
+        {
+          "name": "Stage 0: Pre-Flight",
+          "children": [
+            {
+              "name": "Out-of-scope detection"
+            },
+            {
+              "name": "Prerequisite gates"
+            },
+            {
+              "name": "False positive prevention"
+            }
+          ]
+        },
+        {
+          "name": "Stage 1: Classify Intent",
+          "children": [
+            {
+              "name": "Template overrides"
+            },
+            {
+              "name": "ADF delegation"
+            },
+            {
+              "name": "Domain detection"
+            }
+          ]
+        },
+        {
+          "name": "Stage 2: Select Template",
+          "children": [
+            {
+              "name": "Routing logic"
+            },
+            {
+              "name": "Keyword matching"
+            }
+          ]
+        },
+        {
+          "name": "Stage 3: Load & Execute",
+          "children": [
+            {
+              "name": "Read tool loading"
+            },
+            {
+              "name": "Decision tree following"
+            },
+            {
+              "name": "Three-path execution"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Configuration",
+      "children": [
+        {
+          "name": ".archconfig.json (Project)"
+        },
+        {
+          "name": "~/.archconfig.json (User)"
+        },
+        {
+          "name": "ARCH_DEFAULT_DOMAIN (Env)"
+        }
+      ]
+    },
+    {
+      "name": "Key Features",
+      "children": [
+        {
+          "name": "Auto-routing"
+        },
+        {
+          "name": "Review-first principle"
+        },
+        {
+          "name": "Evidence-grounded research"
+        },
+        {
+          "name": "Decision persistence"
+        }
+      ]
+    },
+    {
+      "name": "Components",
+      "children": [
+        {
+          "name": "routing.py"
+        },
+        {
+          "name": "config.py"
+        },
+        {
+          "name": "persistence.py"
+        },
+        {
+          "name": "prerequisite_analyzer.py"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+"""
+Architecture routing module.
+
+This module implements the routing logic for selecting appropriate templates
+based on query analysis, domain detection, and configuration.
+
+Routing flow: query -> domain detection -> template selection -> validation
+"""
+
+from pathlib import Path
+import re
+import json
+import os
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+VALID_DOMAINS = {"cli", "python", "data-pipeline", "precedent", "auto"}
+
+DOMAIN_KEYWORDS = {
+    "cli": ["cli", "command line", "terminal", "shell", "posix", "exit code", "argument parsing"],
+    "python": ["python", "asyncio", "type hint", "pydantic", "fastapi", "flask", "django", "async", "await", "decorator", "context manager"],
+    "data-pipeline": ["etl", "elt", "pipeline", "streaming", "batch", "kafka", "spark", "airflow", "dagster", "prefect", "warehouse", "data lake"],
+    "precedent": ["adr", "decision record", "precedent", "document decision", "architecture decision record"]
+}
+
+HIGH_COMPLEXITY_INDICATORS = [
+    "redesign", "overhaul", "architecture", "microservices",
+    "from scratch", "rewrite", "replace", "multi-system",
+    "service", "service boundary", "schema migration", "breaking change"
+]
+
+IMPROVE_KEYWORDS = ["improve", "optimize", "harden", "stabilize", "enhance", "strengthen"]
+SUBSYSTEM_KEYWORDS = ["memory", "cks", "hooks", "research", "retro", "lesson", "ingestion", "validation"]
+
+VALID_TEMPLATES = {"fast", "deep", "cli", "python", "data-pipeline", "precedent"}
+
+TEMPLATE_METADATA = {
+    "fast": {"complexity": "LOW", "domain": "Generic", "output_size": "~5 KB"},
+    "deep": {"complexity": "HIGH", "domain": "Generic", "output_size": "~15-30 KB"},
+    "cli": {"complexity": "Any", "domain": "CLI/POSIX", "output_size": "~8 KB"},
+    "python": {"complexity": "Any", "domain": "Python 3.12+", "output_size": "~10 KB"},
+    "data-pipeline": {"complexity": "Any", "domain": "Data Systems", "output_size": "~12 KB"},
+    "precedent": {"complexity": "Any", "domain": "ADR", "output_size": "~20 KB"},
+}
+
+# =============================================================================
+# Routing Functions
+# =============================================================================
+
+def extract_template_override(query: str) -> str | None:
+    """
+    Extract template override from query.
+
+    Given: query string
+    When: query contains "template=<name>"
+    Then: return template name or None
+
+    Examples:
+        "redesign api template=deep" -> "deep"
+        "improve memory system" -> None
+    """
+    match = re.search(r'template=([a-zA-Z0-9-]+)', query)
+    if match:
+        return match.group(1)
+    return None
+
+
+def detect_domain_keywords(query: str) -> str | None:
+    """
+    Detect domain from query keywords.
+
+    Given: query string
+    When: query contains domain-specific keywords
+    Then: return detected domain or None
+
+    Priority: cli > python > data-pipeline > precedent
+    """
+    query_lower = query.lower()
+
+    # Check in priority order
+    for domain in ["cli", "python", "data-pipeline", "precedent"]:
+        keywords = DOMAIN_KEYWORDS.get(domain, [])
+        for keyword in keywords:
+            if keyword.lower() in query_lower:
+                return domain
+
+    return None
+
+
+def detect_complexity(query: str) -> str:
+    """
+    Detect complexity from query.
+
+    Given: query string
+    When: query contains high complexity indicators
+    Then: return "deep" or "fast"
+
+    Default: "fast"
+    """
+    query_lower = query.lower()
+
+    for indicator in HIGH_COMPLEXITY_INDICATORS:
+        if indicator.lower() in query_lower:
+            return "deep"
+
+    return "fast"
+
+
+def detect_intent_type(query: str) -> str:
+    """
+    Detect intent type from query.
+
+    Given: query string
+    When: query contains both improve and subsystem keywords
+    Then: return "IMPROVE_SYSTEM" or "DEFAULT"
+    """
+    query_lower = query.lower()
+
+    has_improve = any(keyword in query_lower for keyword in IMPROVE_KEYWORDS)
+    has_subsystem = any(keyword in query_lower for keyword in SUBSYSTEM_KEYWORDS)
+
+    if has_improve and has_subsystem:
+        return "IMPROVE_SYSTEM"
+
+    return "DEFAULT"
+
+
+def load_arch_config(project_dir: str | None = None) -> dict | None:
+    """
+    Load .archconfig.json from project -> user -> defaults.
+
+    Given: optional project directory path
+    When: config file exists
+    Then: return validated config dict or None
+
+    Raises:
+        ValueError: If config file exists but contains invalid values
+        json.JSONDecodeError: If config file exists but is not valid JSON
+    """
+    # Priority 1: Environment variable
+    env_domain = os.getenv("ARCH_DEFAULT_DOMAIN")
+    if env_domain:
+        if env_domain not in VALID_DOMAINS:
+            raise ValueError(f"Invalid ARCH_DEFAULT_DOMAIN: '{env_domain}'. Must be one of {VALID_DOMAINS}")
+        return {"default_domain": env_domain}
+
+    # Priority 2: Project config file
+    if project_dir:
+        config_path = Path(project_dir) / ".archconfig.json"
+        if config_path.exists():
+            try:
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+            except json.JSONDecodeError as e:
+                raise e
+
+            # Validate required keys
+            if "default_domain" not in config:
+                raise ValueError("Missing 'default_domain' key in config file")
+
+            # Validate domain value
+            domain = config["default_domain"]
+            if domain not in VALID_DOMAINS:
+                raise ValueError(f"Invalid 'default_domain' value: '{domain}'. Must be one of {VALID_DOMAINS}")
+
+            return config
+
+    return None
+
+
+def select_template(
+    query: str,
+    template_override: str | None = None,
+    default_domain: str | None = None,
+    env_domain: str | None = None,
+) -> str:
+    """
+    Select appropriate template based on query and configuration.
+
+    Full routing flow:
+    1. Template override (highest priority)
+    2. Default domain from config/env
+    3. Domain keyword detection
+    4. Complexity detection
+
+    Given: query string and optional configuration
+    When: following routing priority
+    Then: return selected template name
+
+    Returns:
+        Template name from VALID_TEMPLATES
+
+    Raises:
+        ValueError: If invalid template or domain specified
+    """
+    # Priority 1: Template override
+    if template_override:
+        if template_override not in VALID_TEMPLATES:
+            raise ValueError(f"Invalid template override: '{template_override}'. Must be one of {VALID_TEMPLATES}")
+        return template_override
+
+    # Check for template override in query
+    override = extract_template_override(query)
+    if override:
+        if override not in VALID_TEMPLATES:
+            raise ValueError(f"Invalid template override: '{override}'. Must be one of {VALID_TEMPLATES}")
+        return override
+
+    # Priority 2: Default domain (explicit parameter takes precedence over env)
+    domain = None
+    if default_domain:
+        domain = default_domain
+    elif env_domain:
+        domain = env_domain
+
+    # Validate domain if specified
+    if domain and domain not in VALID_DOMAINS:
+        raise ValueError(f"Invalid domain: '{domain}'. Must be one of {VALID_DOMAINS}")
+
+    # Priority 3: Domain keyword detection
+    # Explicit keywords always override default domain (unless default is "auto")
+    detected_domain = detect_domain_keywords(query)
+    if detected_domain:
+        return detected_domain
+
+    # Priority 2b: Use default domain if set (and no keywords detected)
+    if domain and domain != "auto":
+        if domain in VALID_TEMPLATES:
+            return domain
+
+    # Priority 4: Complexity detection
+    return detect_complexity(query)
+
+
+def validate_template(template_name: str) -> tuple[bool, str]:
+    """
+    Validate template name and file existence.
+
+    Given: template name
+    When: checking against valid templates and file system
+    Then: return (is_valid, error_message)
+
+    Returns:
+        (True, "") if valid, (False, error_message) if invalid
+    """
+    # Check if template name is valid
+    if template_name not in VALID_TEMPLATES:
+        return (False, f"Invalid template: '{template_name}'. Must be one of {VALID_TEMPLATES}")
+
+    # Check if template file exists
+    resources_dir = Path(__file__).parent / "resources"
+    template_path = resources_dir / f"{template_name}.md"
+
+    if not template_path.exists():
+        return (False, f"Template file not found: {template_path}")
+
+    # Check if file is readable
+    try:
+        with open(template_path, 'r') as f:
+            content = f.read()
+        if not content:
+            return (False, f"Template file is empty: {template_path}")
+    except Exception as e:
+        return (False, f"Cannot read template file: {template_path}. Error: {e}")
+
+    return (True, "")

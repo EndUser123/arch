@@ -1,0 +1,11 @@
+{
+  "name": "arch",
+  "version": "0.1.0",
+  "description": "Adaptive Architecture Advisor - Template-based architectural decision making for Claude Code",
+  "author": {
+    "name": "CSF Development Team"
+  },
+  "repository": "https://github.com/csf-nip/arch",
+  "license": "MIT",
+  "keywords": ["architecture", "advisor", "templates", "claude-code", "design-patterns"]
+}
