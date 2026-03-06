@@ -22,6 +22,7 @@ governance:
   evidence_requirements:
     - codebase_reading: Read relevant files before suggesting changes
     - web_research: Use WebSearch + WebFetch for current best practices
+    - framework_docs: Verify framework-specific patterns via /context7 (Next.js App Router, Django 5+, etc.)
     - confidence_scoring: Evidence-tiered confidence calibration
     - adversarial_review: Challenge weakest assumptions
   output_persistence: Auto-save to arch_decisions/
@@ -432,7 +433,7 @@ template_content = Read(template_path)
 - **Domain-first routing:** Domain-specific expertise beats generic complexity
 - **Three intent paths:** ARCHITECTURE_REVIEW, IMPROVE_SYSTEM, and DEFAULT
 - **Review-first principle:** Architecture reviews are valid for theoretical designs—never gate behind implementation
-- **Evidence-grounded:** WebSearch + WebFetch for current best practices before recommending
+- **Evidence-grounded:** WebSearch + WebFetch for current best practices; /context7 for framework-specific patterns
 - **Template-based execution:** Read and execute, don't delegate
 - **Override support:** Users can force specific templates
 - **No skill delegation:** Templates are executed inline, not via Skill() tool
@@ -549,6 +550,34 @@ Return Output
 ```
 
 Valid template names: `fast`, `deep`, `cli`, `python`, `data-pipeline`, `precedent`
+
+---
+
+## Error Recovery Playbooks
+
+### Case 1: Architecture Rejection
+
+**Symptom:** `/arch` flags solution as "High Risk" or "Violation".
+**Recovery:**
+1. Document rejected option in analysis notes
+2. Consider alternative approaches (different patterns, technologies)
+3. Re-run `/arch` on alternative with lessons learned
+
+### Case 2: Evidence Gaps
+
+**Symptom:** Insufficient evidence for confident recommendation.
+**Recovery:**
+1. Run `/research` for best practices
+2. Use `/search` for codebase patterns
+3. Re-run `/arch` with evidence gathered
+
+### Case 3: Template Mismatch
+
+**Symptom:** Selected template doesn't fit query complexity.
+**Recovery:**
+1. Use `template=deep` for complex multi-system decisions
+2. Use `template=fast` for quick single-file decisions
+3. Use domain-specific templates (cli, python, data-pipeline) for specialized needs
 
 ---
 
